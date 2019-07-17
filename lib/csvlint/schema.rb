@@ -4,13 +4,14 @@ module Csvlint
 
     include Csvlint::ErrorCollector
 
-    attr_reader :uri, :fields, :title, :description
+    attr_reader :uri, :fields, :fields_by_index, :title, :description
 
     def initialize(uri, fields=[], title=nil, description=nil)
       @uri = uri
       @fields = fields
       @title = title
       @description = description
+      @fields_by_index = {}
       reset
     end
 
@@ -71,36 +72,55 @@ module Csvlint
 
     def validate_header(header, source_url=nil, validate=true)
       reset
+      header.each_with_index do |name, i|
+        field = fields.find { |field| field.name.downcase == name.downcase }
 
-      found_header = header.to_csv(:row_sep => '')
-      expected_header = @fields.map{ |f| f.name }.to_csv(:row_sep => '')
-      if found_header != expected_header
-        build_warnings(:malformed_header, :schema, 1, nil, found_header, "expectedHeader" => expected_header)
+        if fields[i] && fields[i].constraints.fetch('required', nil) && fields[i].name.downcase != name.downcase
+          build_errors(:missing_column, :schema, nil, fields[i].name)
+        end
+
+        if field
+          @fields_by_index[i] = field
+          build_warnings(:different_index_header, :schema, nil, i+1, name) if fields[i].name && fields[i].name.downcase != name.downcase
+        else
+          if fields[i] && fields[i].constraints.fetch('required', nil)
+            build_errors(:missing_column, :schema, nil, fields[i].name)
+          else
+            build_warnings(:extra_column, :schema, nil, i+1, name)
+          end
+          build_warnings(:extra_column, :schema, nil, i+1, name)
+        end
       end
-      return valid?
+
+      (fields - fields_by_index.values).each do |field|
+        build_warnings(:missing_column, :schema, nil, fields.index(field)+1, field.name)
+      end
+
+      valid?
     end
 
     def validate_row(values, row=nil, all_errors=[], source_url=nil, validate=true)
       reset
-      if values.length < fields.length
-        fields[values.size..-1].each_with_index do |field, i|
-          build_warnings(:missing_column, :schema, row, values.size+i+1)
-        end
-      end
-      if values.length > fields.length
-        values[fields.size..-1].each_with_index do |data_column, i|
-          build_warnings(:extra_column, :schema, row, fields.size+i+1)
+
+      values_array = Array.new(values.length) { |i| nil }
+      fields_by_index.each_with_index {|f, i| values_array[i] = (values[i] ? values[i] : nil)}
+
+      values_array.each_with_index do |value,i|
+        field = fields_by_index[i]
+        if field
+          result = field.validate_column(value || "", row, fields_by_index.key(field)+1)
+          @errors += field.errors
+          @warnings += field.warnings
+        else
+          build_warnings(:extra_column, :schema, row, i)
         end
       end
 
-      fields.each_with_index do |field,i|
-        value = values[i] || ""
-        result = field.validate_column(value, row, i+1, all_errors)
-        @errors += fields[i].errors
-        @warnings += fields[i].warnings
+      fields.each_with_index do |field, i|
+        build_warnings(:missing_column, :schema, row, i+1, field.name) if values_array[i].nil?
       end
 
-      return valid?
+      valid?
     end
 
   end
