@@ -109,6 +109,14 @@ module Csvlint
             { "maximum" => constraints["maximum"] }) unless value <= maximumValue
           end
         end
+
+        if constraints["greaterThan"]
+          greaterThanValue = convert_to_type( constraints["greaterThan"] )
+          if greaterThanValue
+            build_errors(:not_greater_than, :schema, row, column, value,
+                         { "greaterThan" => constraints["greaterThan"] }) unless value > greaterThanValue
+          end
+        end
       end
 
       def convert_to_type(value)
