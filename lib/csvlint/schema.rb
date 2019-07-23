@@ -75,9 +75,9 @@ module Csvlint
       header.each_with_index do |name, i|
         field = fields.find { |field| field.name.downcase == name.downcase }
 
-        if fields[i] && fields[i].constraints.fetch('required', nil) && fields[i].name.downcase != name.downcase
-          build_errors(:missing_column, :schema, nil, fields[i].name)
-        end
+        # if fields[i] && fields[i].constraints.fetch('required', nil) && fields[i].name.downcase != name.downcase
+        #   build_errors(:missing_column, :schema, nil, fields[i].name)
+        # end
 
         if field
           @fields_by_index[i] = field
