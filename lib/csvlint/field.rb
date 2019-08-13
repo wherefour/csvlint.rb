@@ -76,6 +76,10 @@ module Csvlint
             @uniques << value
           end
         end
+
+        if constraints["includedIn"]
+          build_errors(:not_included_in, :schema, row, column, value, { "includedIn" => constraints["includedIn"] }) unless constraints["includedIn"].include?(value)
+        end
       end
 
       def validate_type(value, row, column)
