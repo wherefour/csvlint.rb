@@ -81,7 +81,7 @@ module Csvlint
 
         if field
           @fields_by_index[i] = field
-          build_warnings(:different_index_header, :schema, nil, i+1, name) if fields[i].name && fields[i].name.downcase != name.downcase
+          build_warnings(:different_index_header, :schema, nil, i+1, name) if fields[i] && fields[i].name && fields[i].name.downcase != name.downcase
         else
           if fields[i] && fields[i].constraints.fetch('required', nil)
             build_errors(:missing_column, :schema, nil, fields[i].name)
