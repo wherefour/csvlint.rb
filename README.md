@@ -270,6 +270,9 @@ Supported constraints:
 * `minimum` -- specify a minimum range for values, the value will be parsed as specified by `type`
 * `maximum` -- specify a maximum range for values, the value will be parsed as specified by `type`
 * `datePattern` -- specify a `strftime` compatible date pattern to be used when parsing date values and min/max constraints
+* `greaterThan`
+* `greaterThanOrEqual`
+* `includedIn`
 
 Supported data types (this is still a work in progress):
 

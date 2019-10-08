@@ -121,6 +121,14 @@ module Csvlint
                          { "greaterThan" => constraints["greaterThan"] }) unless value > greaterThanValue
           end
         end
+
+        if constraints["greaterThanOrEqual"]
+          greaterThanOrEqualValue = convert_to_type( constraints["greaterThanOrEqual"] )
+          if greaterThanOrEqualValue
+            build_errors(:not_greater_than_or_equal, :schema, row, column, value,
+                         { "greaterThanOrEqual" => constraints["greaterThanOrEqual"] }) unless value >= greaterThanOrEqualValue
+          end
+        end
       end
 
       def convert_to_type(value)
