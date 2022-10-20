@@ -1,12 +1,10 @@
 module Csvlint
-
   class Schema
-
     include Csvlint::ErrorCollector
 
     attr_reader :uri, :fields, :fields_by_index, :title, :description
 
-    def initialize(uri, fields=[], title=nil, description=nil)
+    def initialize(uri, fields = [], title = nil, description = nil)
       @uri = uri
       @fields = fields
       @title = title
@@ -16,20 +14,19 @@ module Csvlint
     end
 
     class << self
-
       extend Gem::Deprecate
 
       def from_json_table(uri, json)
         fields = []
-        json["fields"].each do |field_desc|
-          fields << Csvlint::Field.new( field_desc["name"] , field_desc["constraints"],
-            field_desc["title"], field_desc["description"] )
-        end if json["fields"]
-        return Schema.new( uri , fields, json["title"], json["description"] )
+        json["fields"]&.each do |field_desc|
+          fields << Csvlint::Field.new(field_desc["name"], field_desc["constraints"],
+            field_desc["title"], field_desc["description"])
+        end
+        Schema.new(uri, fields, json["title"], json["description"])
       end
 
       def from_csvw_metadata(uri, json)
-        return Csvlint::Csvw::TableGroup.from_json(uri, json)
+        Csvlint::Csvw::TableGroup.from_json(uri, json)
       end
 
       # Deprecated method signature
@@ -39,38 +36,34 @@ module Csvlint
       deprecate :load_from_json, :load_from_uri, 2018, 1
 
       def load_from_uri(uri, output_errors = true)
-        load_from_string(uri, open(uri).read, output_errors)
+        load_from_string(uri, URI.open(uri).read, output_errors)
       rescue OpenURI::HTTPError, Errno::ENOENT => e
         raise e
       end
 
       def load_from_string(uri, string, output_errors = true)
-        begin
-          json = JSON.parse( string )
-          if json["@context"]
-            uri = "file:#{File.expand_path(uri)}" unless uri.to_s =~ /^http(s)?/
-            return Schema.from_csvw_metadata(uri,json)
-          else
-            return Schema.from_json_table(uri,json)
-          end
-        rescue TypeError => e
-          # NO IDEA what this was even trying to do - SP 20160526
-
-        rescue Csvlint::Csvw::MetadataError => e
-          raise e
-        rescue => e
-          if output_errors === true
-            STDERR.puts e.class
-            STDERR.puts e.message
-            STDERR.puts e.backtrace
-          end
-          return Schema.new(nil, [], "malformed", "malformed")
+        json = JSON.parse(string)
+        if json["@context"]
+          uri = "file:#{File.expand_path(uri)}" unless /^http(s)?/.match?(uri.to_s)
+          Schema.from_csvw_metadata(uri, json)
+        else
+          Schema.from_json_table(uri, json)
         end
+      rescue TypeError => e
+        # NO IDEA what this was even trying to do - SP 20160526
+      rescue Csvlint::Csvw::MetadataError => e
+        raise e
+      rescue => e
+        if output_errors === true
+          warn e.class
+          warn e.message
+          warn e.backtrace
+        end
+        Schema.new(nil, [], "malformed", "malformed")
       end
-
     end
 
-    def validate_header(header, source_url=nil, validate=true)
+    def validate_header(header, source_url = nil, validate = true)
       reset
       header.each_with_index do |name, i|
         field = fields.find { |field| field.name.downcase == name.downcase }
@@ -99,7 +92,7 @@ module Csvlint
       valid?
     end
 
-    def validate_row(values, row=nil, all_errors=[], source_url=nil, validate=true)
+    def validate_row(values, row = nil, all_errors = [], source_url = nil, validate = true)
       reset
 
       values_array = Array.new(values.length) { |i| nil }
@@ -108,7 +101,7 @@ module Csvlint
       values_array.each_with_index do |value,i|
         field = fields_by_index[i]
         if field
-          result = field.validate_column(value || "", row, fields_by_index.key(field)+1)
+          result = field.validate_column(value || "", row, fields_by_index.key(field)+1, all_errors)
           @errors += field.errors
           @warnings += field.warnings
         else
@@ -122,6 +115,5 @@ module Csvlint
 
       valid?
     end
-
   end
 end

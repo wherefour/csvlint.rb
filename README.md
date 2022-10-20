@@ -1,12 +1,12 @@
-[![Build Status](http://img.shields.io/travis/theodi/csvlint.rb.svg)](https://travis-ci.org/theodi/csvlint.rb)
-[![Dependency Status](http://img.shields.io/gemnasium/theodi/csvlint.rb.svg)](https://gemnasium.com/theodi/csvlint.rb)
-[![Coverage Status](http://img.shields.io/coveralls/theodi/csvlint.rb.svg)](https://coveralls.io/r/theodi/csvlint.rb)
+[![Build Status](https://img.shields.io/github/workflow/status/Data-Liberation-Front/csvlint.rb/CI/main)](https://travis-ci.org/theodi/csvlint.rb)
+[![Dependency Status](https://img.shields.io/librariesio/github/Data-Liberation-Front/csvlint.rb)](https://libraries.io/github/Data-Liberation-Front/csvlint.rb)
+[![Coverage Status](http://img.shields.io/coveralls/Data-Liberation-Front/csvlint.rb.svg)](https://coveralls.io/r/Data-Liberation-Front/csvlint.rb)
 [![License](http://img.shields.io/:license-mit-blue.svg)](http://theodi.mit-license.org)
 [![Badges](http://img.shields.io/:badges-5/5-ff6799.svg)](https://github.com/pikesley/badger)
 
 # CSV Lint
 
-A ruby gem to support validating CSV files to check their syntax and contents. You can either use this gem within your own Ruby code, or as a standolone command line application
+A ruby gem to support validating CSV files to check their syntax and contents. You can either use this gem within your own Ruby code, or as a standalone command line application
 
 ## Summary of features
 
@@ -17,7 +17,7 @@ A ruby gem to support validating CSV files to check their syntax and contents. Y
 
 ## Development
 
-`ruby version 2.1.4`
+`ruby version 3.1.2`
 
 ### Tests
 
@@ -63,13 +63,16 @@ Or install it yourself as:
 
 ## Usage
 
-You can either use this gem within your own Ruby code, or as a standolone command line application
+You can either use this gem within your own Ruby code, or as a standalone command line application
 
 ## On the command line
 
 After installing the gem, you can validate a CSV on the command line like so:
 
 	csvlint myfile.csv
+
+You may need to add the gem exectuable directory to your path, by adding '/usr/local/lib/ruby/gems/2.6.0/bin' 
+or whatever your version is, to your .bash_profile PATH entry. [like so](https://stackoverflow.com/questions/2392293/ruby-gems-returns-command-not-found)
 
 You will then see the validation result, together with any warnings or errors e.g.
 
